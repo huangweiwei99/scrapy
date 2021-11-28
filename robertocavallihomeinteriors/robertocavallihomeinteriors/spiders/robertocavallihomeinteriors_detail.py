@@ -32,5 +32,5 @@ class RobertocavallihomeinteriorsDetailSpider(scrapy.Spider):
                            'image_url': x.xpath('./@src').get()},
                 response.xpath('//figure/img')))
 
-        item = ImagesItem(title=title, images=images, image_urls=[i['image_url'] for i in images])
+        item = ImagesItem(title=title, images=images, image_urls=[i['image_url'] for i in images],file_urls=pdf_urls)
         yield item

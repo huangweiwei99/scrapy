@@ -7,8 +7,11 @@
 # useful for handling different item types with a single interface
 import re
 import time
+from os.path import join, basename, dirname
+from urllib.parse import urlparse
 
 from itemadapter import ItemAdapter
+from scrapy.pipelines.files import FilesPipeline
 
 from scrapy.pipelines.images import ImagesPipeline
 
@@ -41,3 +44,4 @@ class ImagePipeline(ImagesPipeline):
                 return re.sub(r'\b[0-9a-f]{40}\b', i['image_name'] + '_' + str(int(round(time.time() * 1000))),
                               save_path)
         return save_path
+

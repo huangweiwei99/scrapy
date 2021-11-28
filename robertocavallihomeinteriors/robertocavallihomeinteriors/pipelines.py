@@ -7,8 +7,11 @@
 # useful for handling different item types with a single interface
 import re
 import time
+from os.path import dirname, basename, join
+from urllib.parse import urlparse
 
 from itemadapter import ItemAdapter
+from scrapy.pipelines.files import FilesPipeline
 from scrapy.pipelines.images import ImagesPipeline
 
 from . import settings
@@ -40,3 +43,12 @@ class ImagePipeline(ImagesPipeline):
                               save_path)
 
         return save_path
+
+
+class FileDownloadPipeline(FilesPipeline):
+    def file_path(self, request, response=None, info=None):
+        print('file')
+        path = urlparse(request.url).path
+        temp = join(basename(dirname(path)), basename(path))
+        print('%s/%s' % (basename(dirname(path)), basename(path)))
+        return '%s/%s' % (basename(dirname(path)), basename(path))

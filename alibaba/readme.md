@@ -10,3 +10,4 @@ detail_data_str = ''
             break
     detail_data = json.loads(detail_data_str)
 ```
+

@@ -12,7 +12,7 @@ class RobertocavallihomeinteriorsItem(scrapy.Item):
     pass
 
 
-class ImagesItem(scrapy.Item):
+class ProductItem(scrapy.Item):
     # define the fields for your item here like:
     # name = scrapy.Field()
     image_urls = scrapy.Field()
@@ -20,3 +20,5 @@ class ImagesItem(scrapy.Item):
     title = scrapy.Field()
     file_urls = scrapy.Field()
     files = scrapy.Field()
+    desc= scrapy.Field()
+    page_url=scrapy.Field()

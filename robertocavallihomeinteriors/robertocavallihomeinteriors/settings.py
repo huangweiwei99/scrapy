@@ -31,6 +31,9 @@ LOG_LEVEL = 'ERROR'
 # CONCURRENT_REQUESTS_PER_DOMAIN = 16
 # CONCURRENT_REQUESTS_PER_IP = 16
 
+# 解决 WARNING: File (code: 302): Error downloading file from
+MEDIA_ALLOW_REDIRECTS = True
+
 # Disable cookies (enabled by default)
 # COOKIES_ENABLED = False
 
@@ -65,7 +68,10 @@ DOWNLOADER_MIDDLEWARES = {
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
     'robertocavallihomeinteriors.pipelines.ImagePipeline': 300,
-    'scrapy.pipelines.files.FilesPipeline': 1,
+    'robertocavallihomeinteriors.pipelines.FileDownloadPipeline': 1,
+    'robertocavallihomeinteriors.pipelines.RobertocavallihomeinteriorsPipeline': 2,
+
+    # 'scrapy.pipelines.files.FilesPipeline': 1,
 
 }
 
@@ -89,5 +95,5 @@ ITEM_PIPELINES = {
 # HTTPCACHE_DIR = 'httpcache'
 # HTTPCACHE_IGNORE_HTTP_CODES = []
 # HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
-IMAGES_STORE = os.path.join(os.path.dirname(__file__), 'images')
-FILES_STORE = os.path.join(os.path.dirname(__file__), 'files')
+IMAGES_STORE = os.path.join(os.path.dirname(__file__), 'products')
+FILES_STORE = os.path.join(os.path.dirname(__file__), 'products')

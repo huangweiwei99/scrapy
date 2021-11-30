@@ -1,6 +1,8 @@
 /venv/
-*.jpg
-*.pdf
 /.idea
 /files
 /images
+/products
+*.jpg
+*.pdf
+*.txt

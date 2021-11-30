@@ -12,24 +12,22 @@ def folder_name_filter(news_title):
     return news_title_result.strip().replace(' ', '_')
 
 
-class RobertocavallihomeinteriorsDetailSpider(scrapy.Spider):
-    name = 'robertocavallihomeinteriors_detail'
+class RobertocavallihomeinteriorsIndexSpider(scrapy.Spider):
+    name = 'robertocavallihomeinteriors_index'
     allowed_domains = ['jumbogroup.it']
-    start_urls = ['https://robertocavallihomeinteriors.jumbogroup.it/en/products/furniture/sofas/blake']
-
-    # def start_requests(self):
-    #     for i in self.start_urls:
-    #         yield scrapy.Request(url=i, meta={
-    #             'dont_redirect': True,  # 这个可以
-    #             'handle_httpstatus_list': [301, 302]  # 这个不行
-    #         }, callback=self.parse)
+    start_urls = start_urls = ['https://robertocavallihomeinteriors.jumbogroup.it/en/products/furniture',
+                               'https://robertocavallihomeinteriors.jumbogroup.it/en/products/outdoor'
+                               ]
 
     def parse(self, response):
+        yield from response.follow_all(xpath='//figure/a', callback=self.parse_detail, dont_filter=True)
+
+    def parse_detail(self, response):
         print(response.xpath('//title/text()').get())
         print(response.request.headers)
-        page_url=response.request.url
+        page_url = response.request.url
         title = response.request.url.split('/')[-1]
-        # product_name = folder_name_filter(response.xpath('//h1[@class="page-intro__title"]/text()').get())
+        product_name = folder_name_filter(response.xpath('//h1[@class="page-intro__title"]/text()').get())
         desc = ''.join(response.xpath('//*[@id="content"]/div/div/section[2]/div/ul/li[1]/div/div//text()').extract())
         # image_urls = response.xpath('//figure/img/@src').extract()
         file_urls = response.xpath('//section[@class="section"]/div[@class="info"]//a/@href').extract()
@@ -39,7 +37,7 @@ class RobertocavallihomeinteriorsDetailSpider(scrapy.Spider):
                            'image_url': x.xpath('./@src').get()},
                 response.xpath('//figure/img')))
 
-        item = ProductItem(title=title,
+        item = ProductItem(title=product_name+'_'+title,
                            images=images,
                            image_urls=[i['image_url'] for i in images],
                            files=files,

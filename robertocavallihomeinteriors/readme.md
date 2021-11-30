@@ -26,3 +26,6 @@ class FileDownloadPipeline(FilesPipeline):
                               save_path)
         return origin_path
 ```
+
+### 增加爬行逻辑
+`robertocavallihomeinteriors_index.py`

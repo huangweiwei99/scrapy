@@ -27,7 +27,7 @@ class RobertocavallihomeinteriorsDetailSpider(scrapy.Spider):
     def parse(self, response):
         print(response.xpath('//title/text()').get())
         print(response.request.headers)
-        page_url=response.request.url
+        page_url = response.request.url
         title = response.request.url.split('/')[-1]
         # product_name = folder_name_filter(response.xpath('//h1[@class="page-intro__title"]/text()').get())
         desc = ''.join(response.xpath('//*[@id="content"]/div/div/section[2]/div/ul/li[1]/div/div//text()').extract())

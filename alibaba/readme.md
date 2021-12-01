@@ -15,10 +15,14 @@ https://taopinpin.en.alibaba.com/event/app/productExportOrderQuery/transactionOv
 ```json
 {"code":200,"success":true,"data":{"dateRange":"2020\/12\/01-2021\/11\/28","totalTransactions":7,"totalQuantities":9,"totalBuyers":7,"chartData":[{"month":"2020-12","transactions":4},{"month":"2021-01","transactions":0},{"month":"2021-02","transactions":0},{"month":"2021-03","transactions":2},{"month":"2021-04","transactions":0},{"month":"2021-05","transactions":0},{"month":"2021-06","transactions":1},{"month":"2021-07","transactions":0},{"month":"2021-08","transactions":0},{"month":"2021-09","transactions":0},{"month":"2021-10","transactions":0},{"month":"2021-11","transactions":0}]},"message":""}
 ```
-
 ###  交易国家
 https://taopinpin.en.alibaba.com/event/app/productExportOrderQuery/transactionCountries.htm?detailId=1600145084062
 ```json
 {"code":200,"success":true,"message":"","data":[{"buyerCountry":"UZ","countryFullName":"Uzbekistan"},{"buyerCountry":"CA","countryFullName":"Canada"},{"buyerCountry":"US","countryFullName":"United States"}]}
 ```
 
+
+
+
+
+> https://www.osgeo.cn/scrapy/topics/developer-tools.html#the-network-tool

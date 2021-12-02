@@ -116,11 +116,15 @@ class MoreDetailSpider(scrapy.Spider):
                 url = response.request.url
                 if len(re.findall(r'transactionOverview', url)) > 0:
                     print('transactionOverview')
+
                     print(json.loads(response.text))
 
                 if len(re.findall(r'transactionCountries', url)) > 0:
                     print('transactionCountries')
+
                     print(json.loads(response.text))
+
+
 
             except Exception as e:
                 print('----------------')

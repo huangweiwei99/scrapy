@@ -28,7 +28,7 @@ class SearchResultByKeywordSpider(scrapy.Spider):
                 urls.append(url_str.format('living_room_sofa', i, j))
                 # print(url_str.format('living_room_sofa', i, j))
         # print(urls)
-        self.start_urls = urls[0:1]
+        self.start_urls = urls[0:]
         for i in self.start_urls:
             yield scrapy.Request(url=i, meta={
                 'dont_redirect': True,  # 这个可以

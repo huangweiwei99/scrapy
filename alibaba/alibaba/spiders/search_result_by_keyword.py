@@ -12,65 +12,118 @@ class SearchResultByKeywordSpider(scrapy.Spider):
     start_urls = []
     orders = []
 
+    # def __init__(self, keywords=None, *args, **kwargs):
+    #     self.keywords = []
+
     def start_requests(self):
+        # url_str = 'https://open-s.alibaba.com/openservice/galleryProductOfferResultViewService?' \
+        #           'appName=magellan&appKey=a5m1ismomeptugvfmkkjnwwqnwyrhpb1&staticParam=&' \
+        #           'searchText={0}&' \
+        #           'IndexArea=product_en&' \
+        #           'asyncLoadIndex={1}&' \
+        #           'waterfallCtrPageId=b760dabb573e46cdbec1dbbf6deefc74&' \
+        #           'waterfallReqCount=1&' \
+        #           'page={2}&' \
+        #           'asyncLoad=true'
+
         url_str = 'https://open-s.alibaba.com/openservice/galleryProductOfferResultViewService?' \
                   'appName=magellan&appKey=a5m1ismomeptugvfmkkjnwwqnwyrhpb1&staticParam=&' \
                   'searchText={0}&' \
                   'IndexArea=product_en&' \
                   'asyncLoadIndex={1}&' \
-                  'waterfallCtrPageId=b760dabb573e46cdbec1dbbf6deefc74&' \
-                  'waterfallReqCount=1&' \
                   'page={2}&' \
                   'asyncLoad=true'
 
         urls = []
-        for i in range(3)[1:3]:
-            for j in range(102)[1:102]:
-                urls.append(url_str.format('living_room_sofa', i, j))
+        keywords = ['living_room_sofa', 'dining_chair', 'dining_table', 'bed']
+        for k in keywords:
+            for i in range(3)[1:3]:
+                for j in range(102)[1:102]:
+                    urls.append(url_str.format(k, i, j))
                 # print(url_str.format('living_room_sofa', i, j))
         # print(urls)
         self.start_urls = urls[0:]
-        for i in self.start_urls:
-            yield scrapy.Request(url=i, meta={
-                'dont_redirect': True,  # 这个可以
-                'handle_httpstatus_list': [301, 302]  # 这个不行
-            }, callback=self.parse_result)
 
+        self.crawler.stats.set_value('links_cnt', len(self.start_urls))
+        print('共有搜索链接{0}条'.format(self.crawler.stats.get_value('links_cnt')))
+        for i in self.start_urls:
+            time.sleep(2)
+            yield scrapy.Request(url=i, callback=self.parse_result, dont_filter=True)
+
+    # 搜索结果
     def parse_result(self, response):
+        self.crawler.stats.inc_value('now_cnt')
+        orginal_links_cnt = self.crawler.stats.get_value('links_cnt')
+        rest_links_cnt = orginal_links_cnt - self.crawler.stats.get_value('now_cnt')
+        print('已经处理{0}条搜索链接，还有{1}条'.format(self.crawler.stats.get_value('now_cnt'), rest_links_cnt))
+        url = response.request.url
         json_data = json.loads(response.text)
-        product_list = json_data['data']['offerList']
-        print('解析搜索结果')
-        for i in product_list:
-            if not i['information']['p4p'] and i['reviews']['reviewCount'] > 0:
-                self.crawler.stats.inc_value('reviews_pages_crawled')
-                res_item = {
-                    'id': i['id'],
-                    'productUrl': i['information']['productUrl'],
-                    'title': i['information']['title'],
-                    'puretitle': i['information']['puretitle'],
-                    'productImage': i['image']['productImage'],
-                    'postCategoryId': i['information']['postCategoryId'],
-                    'supplierName': i['supplier']['supplierName'],
-                    'supplierHomeHref': i['supplier']['supplierHomeHref'],
-                    'supplierYear': i['supplier']['supplierYear'],
-                    'displayStarLevel': i['company']['displayStarLevel'],
-                    'transactionLevelFloat': i['company']['transactionLevelFloat'],
-                    'otTotalOrdCnt': i['company']['otTotalOrdCnt'],
-                    'reviews': i['reviews']['reviewCount']
-                }
-                order_query_url = 'https://{0}event/app/productExportOrderQuery/transactionList.htm?detailId={1}&page=1'.format(
-                    i['supplier']['supplierHomeHref'], i['id'])
-                # print(i['information']['productUrl'])
-                yield Request(url=order_query_url,
-                              meta={'res_item': res_item},
-                              callback=self.parse_transaction)
+        if 'offerList' in json_data['data'].keys():
+            self.crawler.stats.inc_value('sucesss')
+            product_list = json_data['data']['offerList']
+            print('+++++++++++++++++++++')
+            print('载入结果链接,解析搜索结果')
+            for i in product_list:
+                if not i['information']['p4p'] and i['reviews']['reviewCount'] > 0:
+                    self.crawler.stats.inc_value('reviews_pages_crawled')
+                    res_item = {
+                        'id': i['id'],
+                        'supplierName': i['supplier']['supplierName'],
+                        'supplierHomeHref': i['supplier']['supplierHomeHref'].replace('/', ''),
+                        'supplierYear': i['supplier']['supplierYear'],
+                        'productUrl': i['information']['productUrl'],
+                        # 'title': i['information']['title'],
+                        'puretitle': i['information']['puretitle'],
+                        # 'productImage': i['image']['productImage'],
+                        # 'postCategoryId': i['information']['postCategoryId'],
+
+                        # 'displayStarLevel': i['company']['displayStarLevel'],
+                        # 'transactionLevelFloat': i['company']['transactionLevelFloat'],
+                        # 'otTotalOrdCnt': i['company']['otTotalOrdCnt'],
+                        # 'reviews': i['reviews']['reviewCount']
+                    }
+                    # print(res_item['supplierHomeHref'])
+                    yield res_item
+                    # res_item = {
+                    #     'id': i['id'],
+                    #     'productUrl': i['information']['productUrl'],
+                    #     'title': i['information']['title'],
+                    #     'puretitle': i['information']['puretitle'],
+                    #     'productImage': i['image']['productImage'],
+                    #     'postCategoryId': i['information']['postCategoryId'],
+                    #     'supplierName': i['supplier']['supplierName'],
+                    #     'supplierHomeHref': i['supplier']['supplierHomeHref'],
+                    #     'supplierYear': i['supplier']['supplierYear'],
+                    #     'displayStarLevel': i['company']['displayStarLevel'],
+                    #     'transactionLevelFloat': i['company']['transactionLevelFloat'],
+                    #     'otTotalOrdCnt': i['company']['otTotalOrdCnt'],
+                    #     'reviews': i['reviews']['reviewCount']
+                    # }
+                    # order_query_url = 'https://{0}event/app/productExportOrderQuery/transactionList.htm?detailId={1}&page=1'.format(
+                    #     i['supplier']['supplierHomeHref'], i['id'])
+                    # # print(i['information']['productUrl'])
+                    # yield Request(url=order_query_url,
+                    #               meta={'res_item': res_item},
+                    #               callback=self.parse_transaction)
+        else:
+            self.crawler.stats.inc_value('failed')
+            print('--------------------------')
+            print('有{0}个没有载入结果链接'.format(self.crawler.stats.get_value('failed')))
+
+        page = re.findall(r'page=(.+)&', url)[0]
+        asyindex = re.findall(r'asyncLoadIndex=(.+)&page', url)[0]
+        print('第 {0} 页,异步索引值 {1}'.format(page, asyindex))
+        print(url)
+        print(self.crawler.stats.get_stats())
+        print('===============================')
+        print()
 
     # 交易查询
     def parse_transaction(self, response):
         url = response.request.url
-        res_status=response.status
+        res_status = response.status
         # 响应正常
-        if res_status==200:
+        if res_status == 200:
             try:
                 res_item = response.meta['res_item']
                 res_json = json.loads(response.text)
@@ -135,11 +188,11 @@ class SearchResultByKeywordSpider(scrapy.Spider):
                         for j in i.split('\n'):
                             if len(re.findall('data:', j)) > 0:
                                 compare_data = json.loads(j.strip().replace('data: ', ''))
-                                list_view_first=compare_data['listView'][0]
+                                list_view_first = compare_data['listView'][0]
                                 # print(list_view_first['compareCompanyView'])
-                                iquiries=list_view_first['compareCompanyView']['iquiries']
-                                page_views=list_view_first['compareCompanyView']['pageViews']
-                                res_item['iquiries']=iquiries
+                                iquiries = list_view_first['compareCompanyView']['iquiries']
+                                page_views = list_view_first['compareCompanyView']['pageViews']
+                                res_item['iquiries'] = iquiries
                                 res_item['page_views'] = page_views
                                 # print(json.dumps(res_item))
                                 # print(self.crawler.stats.get_value('reviews_pages_crawled'))

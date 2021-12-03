@@ -7,7 +7,7 @@ class TranactionOverviewSpider(scrapy.Spider):
     name = 'tranaction_overview'
     allowed_domains = ['alibaba.com']
     start_urls = []
-    base_url='https://taopinpin.en.alibaba.com/event/app/productExportOrderQuery/transactionOverview.htm?detailId={0}'
+    base_url='https://www.alibaba.com/event/app/productExportOrderQuery/transactionOverview.htm?detailId={0}'
 
     def start_requests(self):
         ids=['1600145084062']

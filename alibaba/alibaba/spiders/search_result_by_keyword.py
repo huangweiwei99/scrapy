@@ -1,5 +1,6 @@
 import json
 import re
+import time
 
 import scrapy
 from scrapy import Request
@@ -82,6 +83,7 @@ class SearchResultByKeywordSpider(scrapy.Spider):
                     if res_json['data']['totalPage'] != res_json['data']['page']:
                         order_query_url = re.sub(r'page=\d+', 'page={0}'.format(str(res_json['data']['page'] + 1)),
                                                  url)
+                        time.sleep(2)
                         yield Request(url=order_query_url, callback=self.parse_transaction,
                                       meta={'res_item': response.meta['res_item']})
 

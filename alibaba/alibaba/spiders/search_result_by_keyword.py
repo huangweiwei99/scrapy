@@ -179,7 +179,6 @@ class SearchResultByKeywordSpider(scrapy.Spider):
     # 180 天类目询盘情况
     def parse_inquires(self, response):
         url = response.request.url
-
         if response.status == 200:
             res_item = response.meta['res_item']
             try:

@@ -2,6 +2,7 @@
 #
 # See documentation in:
 # https://docs.scrapy.org/en/latest/topics/spider-middleware.html
+import random
 import re
 
 from fake_useragent import FakeUserAgentError, UserAgent
@@ -9,6 +10,7 @@ from scrapy import signals
 
 # useful for handling different item types with a single interface
 from itemadapter import is_item, ItemAdapter
+from scrapy.downloadermiddlewares.useragent import UserAgentMiddleware
 
 
 class AmazonSpiderMiddleware:
@@ -105,37 +107,61 @@ class AmazonDownloaderMiddleware:
         spider.logger.info('Spider opened: %s' % spider.name)
 
 
-class RandomUserAgentMiddleware(object):
+# class RandomUserAgentMiddleware(object):
+#
+#     # 随机更换user-agent
+#     # def __init__(self, crawler):
+#     #     super(RandomUserAgentMiddleware, self).__init__()
+#     #     self.ua = UserAgent()
+#     #
+#     # @classmethod
+#     # def from_crawler(cls, crawler):
+#     #     return cls(crawler)
+#     #
+#     # def process_request(self, request, spider):
+#     #     try:
+#     #
+#     #         request.headers.setdefault("User-Agent", self.ua.random)
+#     #     except FakeUserAgentError:
+#     #         pass
+#
+#     def process_request(self, request, spider):
+#         try:
+#             ua = UserAgent()
+#             request.headers['User-Agent'] = ua.chrome
+#             # request.headers[
+#             #     'referer'] = 'https://robertocavallihomeinteriors.jumbogroup.it/en/products/furniture/sofas/aruba'
+#             while True:
+#                 ua_str = ua.random
+#                 # PC端
+#                 if len(re.findall(r'Mobile|iPad|Tablet', ua_str)) == 0:
+#                     # print(ua_str)
+#                     request.headers['User-Agent'] = ua_str
+#                     break
+#         except FakeUserAgentError:
+#             pass
+#
+#     #     # https://zhuanlan.zhihu.com/p/57114881
+#
 
-    # 随机更换user-agent
-    # def __init__(self, crawler):
-    #     super(RandomUserAgentMiddleware, self).__init__()
-    #     self.ua = UserAgent()
-    #
-    # @classmethod
-    # def from_crawler(cls, crawler):
-    #     return cls(crawler)
-    #
-    # def process_request(self, request, spider):
-    #     try:
-    #
-    #         request.headers.setdefault("User-Agent", self.ua.random)
-    #     except FakeUserAgentError:
-    #         pass
+
+class RandomUserAgentMiddleware(UserAgentMiddleware):
+    """
+    设置User-Agent
+    """
+
+    def __init__(self, user_agent):
+        self.user_agent = user_agent
+
+    @classmethod
+    def from_crawler(cls, crawler):
+        return cls(
+            user_agent=crawler.settings.get('USER_AGENTS_LIST')
+        )
 
     def process_request(self, request, spider):
-        try:
-            ua = UserAgent()
-            request.headers['User-Agent'] = ua.chrome
-            # request.headers[
-            #     'referer'] = 'https://robertocavallihomeinteriors.jumbogroup.it/en/products/furniture/sofas/aruba'
-            while True:
-                ua_str = ua.random
-                # PC端
-                if len(re.findall(r'Mobile|iPad|Tablet', ua_str)) == 0:
-                    # print(ua_str)
-                    request.headers['User-Agent'] = ua_str
-                    break
-        except FakeUserAgentError:
-            pass
-    #     # https://zhuanlan.zhihu.com/p/57114881
+        referer = request.url
+        if referer:
+            request.headers["referer"] = referer
+        agent = random.choice(self.user_agent)
+        request.headers['User-Agent'] = agent

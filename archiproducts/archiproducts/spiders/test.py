@@ -9,7 +9,7 @@ class TestSpider(scrapy.Spider):
     # start_urls = ['http://archiproducts.com/']
 
     def start_requests(self):
-        requesta = Request.from_curl(  """curl 'https://www.archiproducts.com/api/products/productpopcontact?culture=zh' \
+        requesta = Request.from_curl("""curl 'https://www.archiproducts.com/api/products/productpopcontact?culture=zh' \
   -H 'authority: www.archiproducts.com' \
   -H 'sec-ch-ua: " Not A;Brand";v="99", "Chromium";v="96", "Microsoft Edge";v="96"' \
   -H 'accept: */*' \

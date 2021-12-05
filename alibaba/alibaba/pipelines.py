@@ -5,9 +5,14 @@
 
 
 # useful for handling different item types with a single interface
+import re
+
 from itemadapter import ItemAdapter
+from scrapy.pipelines.images import ImagesPipeline
 
 
 class AlibabaPipeline:
     def process_item(self, item, spider):
         return item
+
+

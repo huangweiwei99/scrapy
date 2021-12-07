@@ -20,7 +20,7 @@ class ArchiproductSpider(scrapy.Spider):
     def parse(self, response):
         # print(response.request.headers)
         # print(response.xpath('//title/text()').get())
-        # print(response.request.url.split('/')[-1])
+        # print(response.request.url.spli t('/')[-1])
 
         image_titles = response.xpath(
             '//div[@class="image-container"]//img/@title').extract() if len(response.xpath(

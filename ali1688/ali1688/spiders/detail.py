@@ -1,10 +1,12 @@
 import scrapy
 from scrapy import Request
+from scrapy.crawler import CrawlerProcess
 
 
 class ExampleSpider(scrapy.Spider):
     name = 'detail'
     allowed_domains = ['1688.com']
+
     # start_urls = [
     #     'https://detail.1688.com/offer/657584057063.html?spm=a26352.13672862.offerlist.7.1cb73f3fftyYha']
 
@@ -35,5 +37,19 @@ class ExampleSpider(scrapy.Spider):
 
     def parse(self, response):
         print(response.request.headers)
-        title=response.xpath('//title/text()').get()
-        print(response.body)
+        title = response.xpath('//title/text()').get()
+        print(title)
+
+
+if __name__ == "__main__":
+    process = CrawlerProcess(
+        settings={
+            "TWISTED_REACTOR": "twisted.internet.asyncioreactor.AsyncioSelectorReactor",
+            "DOWNLOAD_HANDLERS": {
+                "https": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
+                # "http": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
+            },
+        }
+    )
+    process.crawl(ExampleSpider)
+    process.start()

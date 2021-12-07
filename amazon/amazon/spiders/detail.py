@@ -1,6 +1,7 @@
 import re
 
 import scrapy
+from scrapy.crawler import CrawlerProcess
 
 
 class DetailSpider(scrapy.Spider):
@@ -17,3 +18,17 @@ class DetailSpider(scrapy.Spider):
         view_cnt = re.sub(r'\D', '', view)
         item = {'product_name': product_name, 'brand': brand, 'view_cnt': view_cnt}
         print(item)
+
+
+if __name__ == "__main__":
+    process = CrawlerProcess(
+        settings={
+            "TWISTED_REACTOR": "twisted.internet.asyncioreactor.AsyncioSelectorReactor",
+            "DOWNLOAD_HANDLERS": {
+                "https": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
+                # "http": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
+            },
+        }
+    )
+    process.crawl(DetailSpider)
+    process.start()

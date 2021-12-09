@@ -1,5 +1,6 @@
 import json
 import re
+from copy import deepcopy
 
 import scrapy
 
@@ -8,7 +9,9 @@ class MoreDetailSpider(scrapy.Spider):
     name = 'more_detail'
     allowed_domains = ['alibaba.com']
     start_urls = [
-        'https://www.alibaba.com/product-detail/Linsy-Modular-Velours-Canap-Chesterfield-Living_62413162233.html']
+        'https://www.alibaba.com/product-detail/Linsy-Modular-Velours-Canap-Chesterfield-Living_62413162233.html',
+        'https://plainhomeland.en.alibaba.com/product/1600232213302-826783768/Double_Soft_Bed_New_Model_Full_King_Size_Leather_Headboard_Upholstered_Bed.html'
+    ]
 
     def parse(self, response):
         if response.status == 200:
@@ -19,14 +22,24 @@ class MoreDetailSpider(scrapy.Spider):
                             if len(re.findall(r'window.detailData', j)) > 0:
                                 detail_data_str = j.split('window.detailData = ')[-1]
                                 detail_data = json.loads(detail_data_str)
-                                print(json.dumps(detail_data))
+                                # print(json.dumps(detail_data))
+                                item_id = detail_data['globalData']['product']['productId']
+                                base_url = 'https://www.en.alibaba.com/event/app/productExportOrderQuery'
                                 urls = [
-                                    'https://taopinpin.en.alibaba.com/event/app/productExportOrderQuery/transactionOverview.htm?detailId=62413162233',
-                                    'https://taopinpin.en.alibaba.com/event/app/productExportOrderQuery/transactionCountries.htm?detailId=62413162233'
+                                    # 订单概览
+                                    '{0}/transactionOverview.htm?detailId={1}'.format(base_url, item_id),
+                                    # 出口国家
+                                    '{0}/transactionCountries.htm?detailId={1}'.format(base_url, item_id),
+                                    # 详细订单
+                                    '{0}/transactionList.htm?&size=1000&detailId={1}'.format(base_url, item_id)
                                 ]
+                                self.crawler.stats.set_value('detail', [])
+                                detail_data = detail_data['globalData']
+                                detail_data.pop('i18n', '')
                                 yield from response.follow_all(urls=urls, callback=self.parse_transaction,
                                                                dont_filter=True,
-                                                               meta={'detail': detail_data})
+                                                               meta={'detail': deepcopy(detail_data)})
+
                                 # 获取产品首图
                                 # cover_url = ''
                                 # for i in detail_data['globalData']['product']['mediaItems']:
@@ -114,17 +127,50 @@ class MoreDetailSpider(scrapy.Spider):
         if response.status == 200:
             try:
                 url = response.request.url
-                if len(re.findall(r'transactionOverview', url)) > 0:
-                    print('transactionOverview')
+                item_id = url.split('=')[-1]
+                meta_detail = response.meta['detail']
+                if str(meta_detail['product']['productId']) == item_id:
+                    # 设置初始数据
+                    k_detail = self.crawler.stats.get_value('detail')
+                    if 'transaction_overview' not in k_detail \
+                            and 'transaction_countries' not in k_detail \
+                            and 'transaction_list' not in k_detail:
+                        print('start')
+                        self.crawler.stats.set_value('detail', meta_detail)
 
-                    print(json.loads(response.text))
+                    if len(re.findall(r'transactionOverview', url)) > 0:
+                        print('transactionOverview')
+                        res_data = json.loads(response.text)
+                        detail = self.crawler.stats.get_value('detail')
+                        detail['transaction_overview'] = res_data['data'] if res_data['success'] else []
+                        self.crawler.stats.set_value('detail', detail)
+                        print('-------------------------------------')
 
-                if len(re.findall(r'transactionCountries', url)) > 0:
-                    print('transactionCountries')
+                    elif len(re.findall(r'transactionCountries', url)) > 0:
+                        print('transactionCountries')
+                        res_data = json.loads(response.text)
+                        detail = self.crawler.stats.get_value('detail')
+                        detail['transaction_countries'] = res_data['data'] if res_data['success'] else []
+                        self.crawler.stats.set_value('detail', detail)
+                        print('-------------------------------------')
 
-                    print(json.loads(response.text))
+                    elif len(re.findall(r'transactionList', url)) > 0:
+                        print('transactionList')
+                        res_data = json.loads(response.text)
+                        detail = self.crawler.stats.get_value('detail')
+                        detail['transaction_list'] = res_data['data']['orders'] if res_data['success'] else []
+                        self.crawler.stats.set_value('detail', detail)
+                        print('-------------------------------------')
 
-
+                    # 三次查询后返回结果
+                    k_detail = self.crawler.stats.get_value('detail')
+                    if 'transaction_overview' in k_detail \
+                            and 'transaction_countries' in k_detail \
+                            and 'transaction_list' in k_detail:
+                        detail = self.crawler.stats.get_value('detail')
+                        print(json.dumps(detail))
+                        print('+++++++++++++++++++++++++++++++++++++++++++++===========================')
+                        self.crawler.stats.set_value('detail', [])
 
             except Exception as e:
                 print('----------------')

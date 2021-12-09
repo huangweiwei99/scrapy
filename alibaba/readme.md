@@ -65,3 +65,20 @@ Array.from(document.querySelectorAll("#app > div > div.iamgesaerch-offer-list-wr
 > https://www.osgeo.cn/scrapy/topics/developer-tools.html#the-network-tool
 > 
 > https://scrapy-chs.readthedocs.io/zh_CN/0.24/topics/feed-exports.html#topics-feed-format-jsonlines
+> 
+> 
+> db.createUser({ user:'alibaba',pwd:'!123456+',roles:[{role:'userAdminAnyDatabase', db:'site'},"readWriteAnyDatabase"]});
+ 
+```
+db.createUser({user:'alibaba',pwd:'123456',roles:[{role:"userAdminAnyDatabase",db:"site"}]});
+```
+
+```angular2html
+db.createUser(
+  {
+    user: "admin",
+    pwd: "123456",
+    roles: [ { role: "root", db: "alibaba" } ]
+  }
+)
+```

@@ -65,7 +65,7 @@ DOWNLOADER_MIDDLEWARES = {
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
     # 'alibaba.pipelines.AlibabaPipeline': 300,
-    'alibaba.pipelines.DetailMongoPipeline': 300,
+    # 'alibaba.pipelines.DetailMongoPipeline': 300,
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)

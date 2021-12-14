@@ -3,7 +3,7 @@ from scrapy import cmdline
 
 
 class AwesomeSpider(scrapy.Spider):
-    name = "awesome"
+    name = "awesome1"
 
     def start_requests(self):
         # GET request
@@ -16,9 +16,10 @@ class AwesomeSpider(scrapy.Spider):
         )
 
     def parse(self, response):
+        print(response.url)
         # 'response' contains the page as seen by the browser
         yield {"url": response.url}
 
 
 if __name__ == "__main__":
-    cmdline.execute(['scrapy', 'crawl', 'awesome'])
+    cmdline.execute(['scrapy', 'crawl', 'awesome1'])

@@ -104,6 +104,7 @@ class AlibabaDownloaderMiddleware:
     def spider_opened(self, spider):
         spider.logger.info('Spider opened: %s' % spider.name)
 
+
 class RandomUserAgentMiddleware(object):
 
     # 随机更换user-agent
@@ -125,7 +126,7 @@ class RandomUserAgentMiddleware(object):
     def process_request(self, request, spider):
         try:
             ua = UserAgent()
-            request.headers['User-Agent'] = ua.chrome
+            # request.headers['User-Agent'] = ua.chrome
             # request.headers[
             #     'referer'] = 'https://robertocavallihomeinteriors.jumbogroup.it/en/products/furniture/sofas/aruba'
             while True:
@@ -134,6 +135,9 @@ class RandomUserAgentMiddleware(object):
                 if len(re.findall(r'Mobile|iPad|Tablet', ua_str)) == 0:
                     # print(ua_str)
                     request.headers['User-Agent'] = ua_str
+                    referer = request.url
+                    if referer:
+                        request.headers["referer"] = referer
                     break
         except FakeUserAgentError:
             pass

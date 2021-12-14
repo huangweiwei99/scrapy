@@ -1,38 +1,38 @@
 from pathlib import Path
 
-from scrapy import Spider, FormRequest
+import scrapy
+from scrapy import cmdline, Request
 from scrapy.crawler import CrawlerProcess
 from scrapy_playwright.page import PageCoroutine
 
 
-class PostSpider(Spider):
-    """
-    Send data using the POST verb
-    """
-
-    name = "post"
+class AlibabaSpider(scrapy.Spider):
+    name = 'alibaba'
 
     def start_requests(self):
-        yield FormRequest(
-            url="https://httpbin.org/post",
-            formdata={"foo": "bar"},
+        yield Request(
+            url="https://www.alibaba.com",
+            # cookies={"foo": "bar"},
             meta={
                 "playwright": True,
                 "playwright_page_coroutines": [
                     PageCoroutine(
-                        "screenshot", path=Path(__file__).parent / "post.png", full_page=True
+                        "screenshot", path=Path(__file__).parent / "ali2.png", full_page=True
                     ),
                 ],
             },
         )
 
     def parse(self, response):
-        yield {"url": response.url}
+        return {"url": response.url}
 
 
+# if __name__ == "__main__":
+#     cmdline.execute(['scrapy', 'crawl', 'scroll'])
 if __name__ == "__main__":
     process = CrawlerProcess(
         settings={
+            "PLAYWRIGHT_BROWSER_TYPE": "firefox",
             "TWISTED_REACTOR": "twisted.internet.asyncioreactor.AsyncioSelectorReactor",
             "DOWNLOAD_HANDLERS": {
                 "https": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
@@ -40,5 +40,5 @@ if __name__ == "__main__":
             },
         }
     )
-    process.crawl(PostSpider)
+    process.crawl(AlibabaSpider)
     process.start()

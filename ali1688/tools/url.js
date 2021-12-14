@@ -7,6 +7,8 @@ Array.from(items).forEach(t => {
 })
 console.log(url)
 
+// #app > div > div.iamgesaerch-offer-list-wrapper > div > div > div > div > div.bc-ife-gallery-item-title.bc-ife-gallery-item-title-line2 > a
+
 let url = []
 clear();
 items = document.querySelectorAll('div[class="zg-grid-general-faceout"] > div')

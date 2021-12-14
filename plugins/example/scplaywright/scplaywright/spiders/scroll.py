@@ -1,5 +1,6 @@
 import scrapy
 from scrapy import cmdline
+from scrapy.crawler import CrawlerProcess
 from scrapy_playwright.page import PageCoroutine
 
 
@@ -22,10 +23,23 @@ class ScrollSpider(scrapy.Spider):
 
     async def parse(self, response):
         page = response.meta["playwright_page"]
-        await page.screenshot(path="quotes.png", full_page=True)
+        await page.screenshot(path="scroll.png", full_page=True)
         await page.close()
         return {"quote_count": len(response.css("div.quote"))}
 
 
+# if __name__ == "__main__":
+#     cmdline.execute(['scrapy', 'crawl', 'scroll'])
+
 if __name__ == "__main__":
-    cmdline.execute(['scrapy', 'crawl', 'scroll'])
+    process = CrawlerProcess(
+        settings={
+            "TWISTED_REACTOR": "twisted.internet.asyncioreactor.AsyncioSelectorReactor",
+            "DOWNLOAD_HANDLERS": {
+                # "https": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
+                "http": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
+            },
+        }
+    )
+    process.crawl(ScrollSpider)
+    process.start()

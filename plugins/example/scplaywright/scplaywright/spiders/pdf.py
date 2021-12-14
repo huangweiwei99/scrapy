@@ -1,5 +1,6 @@
 import scrapy
 from scrapy import cmdline
+from scrapy.crawler import CrawlerProcess
 from scrapy_playwright.page import PageCoroutine
 
 
@@ -14,7 +15,9 @@ class PdfSpider(scrapy.Spider):
                 playwright_page_coroutines={
                     "click": PageCoroutine("click", selector="a"),
                     "pdf": PageCoroutine("pdf", path="/tmp/file.pdf"),
+
                 },
+
             ),
         )
 
@@ -25,5 +28,19 @@ class PdfSpider(scrapy.Spider):
         yield {"url": response.url}
 
 
+# if __name__ == "__main__":
+#     cmdline.execute(['scrapy', 'crawl', 'pdf'])
+
 if __name__ == "__main__":
-    cmdline.execute(['scrapy', 'crawl', 'pdf'])
+    process = CrawlerProcess(
+        settings={
+            "TWISTED_REACTOR": "twisted.internet.asyncioreactor.AsyncioSelectorReactor",
+            "DOWNLOAD_HANDLERS": {
+                "https": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
+                # "http": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
+            },
+        }
+    )
+    process.crawl(PdfSpider)
+    process.start()
+

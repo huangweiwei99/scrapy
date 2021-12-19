@@ -126,9 +126,6 @@ class RandomUserAgentMiddleware(object):
     def process_request(self, request, spider):
         try:
             ua = UserAgent()
-            # request.headers['User-Agent'] = ua.chrome
-            # request.headers[
-            #     'referer'] = 'https://robertocavallihomeinteriors.jumbogroup.it/en/products/furniture/sofas/aruba'
             while True:
                 ua_str = ua.random
                 # PC端

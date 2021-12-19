@@ -1,14 +1,21 @@
+import datetime
 import json
 import re
 import time
 from copy import deepcopy
 
+import pytz
 import scrapy
 from scrapy import Request
 from scrapy.crawler import CrawlerProcess
 
+from alibaba.alibaba.items import ProductSupplier
+
 
 class AlibabaResultKeywordsSpider(scrapy.Spider):
+    """
+    通过关键词查找商家信息和产品信息
+    """
     name = 'alibaba_result_keywords'
 
     def start_requests(self):
@@ -27,9 +34,6 @@ class AlibabaResultKeywordsSpider(scrapy.Spider):
 
     # 搜索上半结果
     def parse_result(self, response):
-        # print(response.request.headers['User-Agent'])
-        # title = response.xpath('//title/text()').get()
-        # print(title)
         if response.status == 200:
             try:
                 for i in response.xpath('//script').extract():
@@ -45,13 +49,13 @@ class AlibabaResultKeywordsSpider(scrapy.Spider):
                 url = 'https://open-s.alibaba.com/openservice/galleryProductOfferResultViewService?' \
                       'appName=magellan&appKey=a5m1ismomeptugvfmkkjnwwqnwyrhpb1{0}'.format(
                     asyncRequestUrl)
-                # print(url)
                 yield scrapy.Request(url=url, callback=self.parse_result_async, dont_filter=True,
                                      meta={'offer_list': deepcopy(offerList),
                                            'keyword': deepcopy(response.meta['keyword'])})
             except Exception as e:
                 print('----------------')
                 print('解析详情页出错')
+                print('上半部分，关键词：{0}'.format(response.meta['keyword']))
                 print(response.request.url)
                 # print(detail_data_str)
                 print(e)
@@ -64,38 +68,51 @@ class AlibabaResultKeywordsSpider(scrapy.Spider):
     def parse_result_async(self, response):
         if response.status == 200:
             try:
-
                 json_data = json.loads(response.text)
                 # print(json_data['code'] == 200)
                 # flag=json_data['code'] == 200
                 if json_data['code'] == 200:
                     keyword = response.meta['keyword']
                     offer_list = response.meta['offer_list']
-                    offer_list.extend(json_data['data']['offerList'])
+                    if 'offerList' in json_data['data'].keys():
+                        offer_list.extend(json_data['data']['offerList'])
 
                     # print(json.dumps(offer_list))
-                    print('+++++++++++++++++++++++++++++++++++')
+                    print('+' * 100)
                     for i in offer_list:
-                        item = {'supplierId': i['supplier']['supplierId'],
-                                'supplierName': i['supplier']['supplierName'],
-                                'supplierHomeHref': 'https:{0}'.format(i['supplier']['supplierHomeHref']),
-                                'displayStarLevel': i['company']['displayStarLevel'],
+                        item = {'supplier_id': i['supplier']['supplierId'],
+                                'supplier_name': i['supplier']['supplierName'],
+                                'supplier_site': 'https:{0}'.format(i['supplier']['supplierHomeHref']),
+                                'supplier_star': i['company']['displayStarLevel'],
                                 'keyword': keyword,
-                                'postCategoryId': i['information']['postCategoryId'],
-                                'productImage': 'https:{0}'.format(i['image']['productImage']),
-                                'id': i['id'],
-                                'title': i['information']['puretitle'],
-                                'productUrl': 'https:{0}'.format(i['information']['productUrl']),
-                                'rankScoreInfo': i['information']['rankScoreInfo'],
+                                'post_category_id': i['information']['postCategoryId'],
+                                'product_image': 'https:{0}'.format(i['image']['productImage']),
+                                'product_id': i['id'],
+                                'product_title': i['information']['puretitle'],
+                                'product_url': 'https:{0}'.format(i['information']['productUrl']),
+                                'product_rank_score_info': i['information']['rankScoreInfo'],
                                 }
                         yield item
                         print(json.dumps(item))
+                        # yield ProductSupplier(
+                        #     supplier_id=item['supplier_id'],
+                        #     supplier_name=item['supplier_name'],
+                        #     supplier_site=item['supplier_site'],
+                        #     supplier_star=item['supplier_star'],
+                        #     keyword=item['keyword'],
+                        #     post_category_id=item['post_category_id'],
+                        #     product_id=item['product_id'],
+                        #     product_image=item['product_image'],
+                        #     product_title=item['product_title'],
+                        #     product_url=item['product_url'],
+                        #     product_rank_score_info=item['product_rank_score_info'],
+                        # )
 
             except Exception as e:
                 print('----------------')
                 print('解析详情页出错')
+                print('下半部分，关键词：{0}'.format(response.meta['keyword']))
                 print(response.request.url)
-                # print(detail_data_str)
                 print(e)
                 print('----------------')
         else:
@@ -103,6 +120,7 @@ class AlibabaResultKeywordsSpider(scrapy.Spider):
 
 
 if __name__ == "__main__":
+    today = datetime.datetime.now(pytz.timezone('PRC')).strftime("%Y-%m-%d_%H-%M-%S")
     process = CrawlerProcess(
         settings={
             # "TWISTED_REACTOR": "twisted.internet.asyncioreactor.AsyncioSelectorReactor",
@@ -113,14 +131,21 @@ if __name__ == "__main__":
             'AUTOTHROTTLE_ENABLED': True,
             'AUTOTHROTTLE_START_DELAY': 1,
             'AUTOTHROTTLE_MAX_DELAY': 3,
-
             'DOWNLOADER_MIDDLEWARES': {
                 'alibaba.alibaba.middlewares.RandomUserAgentMiddleware': 1,
                 # 'scplaywright.middlewares.ScplaywrightDownloaderMiddleware': 543,
                 # 'scplaywright.middlewares.RandomUserAgentMiddleware': 543,
             },
+            'ITEM_PIPELINES': {
+                # 'alibaba.pipelines.AlibabaPipeline': 300,
+                'alibaba.alibaba.pipelines.SearchResultMongoPipeline': 300,
+            },
+            'MONGO_URI': 'mongodb://skydot.f3322.net:49186',
+            'MONGO_DB': "alibaba",
+            'MONGO_USER': "admin",
+            'MONGO_PSW': "123456",
             "FEEDS": {
-                "搜索结果.csv": {"format": "csv", "encoding": "utf-8", "indent": 4},
+                "搜索结果_{0}.csv".format(today): {"format": "csv", "encoding": "utf-8", "indent": 4},
             },
             # 'PLAYWRIGHT_BROWSER_TYPE':'firefox',
         }

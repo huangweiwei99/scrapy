@@ -81,3 +81,69 @@ class DetailMongoPipeline(object):
         table = self.db[self.collection]
         table.insert_one(data)
         return item
+
+
+class SearchResultMongoPipeline(object):
+    collection = 'search_results'
+
+    def __init__(self, mongo_uri, mongo_db, mongo_user, mongo_pwd):
+        self.mongo_uri = mongo_uri
+        self.mongo_db = mongo_db
+        self.mongo_user = mongo_user
+        self.mongo_pwd = mongo_pwd
+        # self.mongo_db = 'alibaba'
+        # mongo_pwd='123456'
+
+        self.client = pymongo.MongoClient(self.mongo_uri, username='admin', password=mongo_pwd)
+        self.db = self.client[self.mongo_db]
+
+    @classmethod
+    def from_crawler(cls, crawler):
+        """
+        scrapy为我们访问settings提供了这样的一个方法，这里，
+        我们需要从settings.py文件中，取得数据库的URI和数据库名称
+        """
+        print(crawler.settings.get('MONGO_URI'))
+        return cls(
+            mongo_uri=crawler.settings.get('MONGO_URI'),
+            mongo_db=crawler.settings.get('MONGO_DB'),
+            mongo_user=crawler.settings.get('MONGO_USER'),
+            mongo_pwd=crawler.settings.get('MONGO_PSW'),
+        )
+
+    def open_spider(self, spider):
+        """
+        爬虫一旦开启，就会实现这个方法，连接到数据库
+        """
+        # self.db.authenticate(self.mongo_user, self.mongo_pwd)
+
+    def close_spider(self, spider):
+        """
+        爬虫一旦关闭，就会实现这个方法，关闭数据库连接
+        """
+        self.client.close()
+
+    def process_item(self, item, spider):
+        """
+        每个实现保存的类里面必须都要有这个方法，且名字固定，用来具体实现怎么保存
+        """
+        # if not item['title']:
+        #     return item
+
+        data = {
+            'supplier_id': item['supplier_id'],
+            'supplier_name': item['supplier_name'],
+            'supplier_site': item['supplier_site'],
+            'supplier_star': item['supplier_star'],
+            'keyword': item['keyword'],
+            'post_category_id': item['post_category_id'],
+            'product_id': item['product_id'],
+            'product_image': item['product_image'],
+            'product_title': item['product_title'],
+            'product_url': item['product_url'],
+            'product_rank_score_info': item['product_rank_score_info'],
+            'get_time': datetime.timestamp(datetime.now()),
+        }
+        table = self.db[self.collection]
+        table.insert_one(data)
+        return item
